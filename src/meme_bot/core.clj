@@ -19,15 +19,24 @@
     "Surprised Pikachu" 155067746
     "Tuxedo Winnie The Pooh" 178591752))
 
+(defn getURL [response]
+  (let [success (-> response (:body) (json/read-str :key-fn keyword) (:success))]
+    (if success
+      (-> response (:body) (json/read-str :key-fn keyword) (get-in [:data :url]) (bot/say))
+      (bot/say "Something went wrong :("))))
+
 (bot/defcommand make-meme [client message]
   (if-let [content (not-empty (:content message))]
-    (let [tokens (str/split content #"(\s)?-")
-          template (get tokens 1)
-          text0 (get tokens 2)
-          text1 (get tokens 3)
-          response (requestMeme (matchTemplate template) text0 text1)]
-      ;;(bot/say (json/write-str response)))))
-        (bot/say (str template text0 text1)))))
+    (try
+      (let [tokens (str/split content #"(\s)?-")
+            template (get tokens 1)
+            text0 (get tokens 2)
+            text1 (get tokens 3)
+            response (requestMeme (matchTemplate template) text0 text1)]
+          (getURL response))
+      (catch IllegalArgumentException e
+        (bot/say "Meme template incorect")
+        ))))
 
 (defn -main [& args]
   (bot/start))
