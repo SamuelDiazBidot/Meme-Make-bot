@@ -1,0 +1,8 @@
+{
+    "token" : "NjYzMjkwOTc1Mzg0MjQwMTMx.XhGbaA.0Dg2C9XQ3s6I2CM0CIID0yG17eI",
+    "prefix" : "!",
+    "bot-name" : "Meme Maker",
+    "extension-folders" : [
+        "src/discord/extensions"
+    ]
+}
