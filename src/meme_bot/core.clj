@@ -9,15 +9,15 @@
   (client/post "https://api.imgflip.com/caption_image"
     {:form-params {:template_id template :username "ginosashi" :password "password" :text0 text0 :text1 text1}}))
 
-(defn matchTemplate [meme]
-  (case (str meme)
-    "Woman Yelling At Cat" 188390779
-    "Two Buttons" 87743020
-    "Mocking Spongebob" 102156234
-    "Drake Hotline Bling" 181913649
-    "Change My Mind"  129242436
-    "Surprised Pikachu" 155067746
-    "Tuxedo Winnie The Pooh" 178591752))
+  (def templates 
+    { "Woman Yelling At Cat" 188390779
+      "Two Buttons" 87743020
+      "Mocking Spongebob" 102156234
+      "Drake Hotline Bling" 181913649
+      "Change My Mind"  129242436
+      "Surprised Pikachu" 155067746
+      "Tuxedo Winnie The Pooh" 178591752
+    })
 
 (defn getURL [response]
   (let [success (-> response (:body) (json/read-str :key-fn keyword) (:success))]
@@ -25,18 +25,22 @@
       (-> response (:body) (json/read-str :key-fn keyword) (get-in [:data :url]) (bot/say))
       (bot/say "Something went wrong :("))))
 
-(bot/defcommand make-meme [client message]
+(bot/defcommand makeMeme [client message]
+  "How to use: !makeMeme -Meme Template -text1 -text2"
   (if-let [content (not-empty (:content message))]
-    (try
-      (let [tokens (str/split content #"(\s)?-")
-            template (get tokens 1)
-            text0 (get tokens 2)
-            text1 (get tokens 3)
-            response (requestMeme (matchTemplate template) text0 text1)]
+    (let [tokens (str/split content #"(\s)?-")]
+      (if-let [templateId (get templates (get tokens 1))]
+        (let [text0 (get tokens 2)
+              text1 (get tokens 3)
+              response (requestMeme templateId text0 text1)]
           (getURL response))
-      (catch IllegalArgumentException e
-        (bot/say "Meme template incorect")
-        ))))
+        (bot/say "Invalid template name")))
+    (bot/say "How to use: !makeMeme -MemeTemplate -text1 -text2")))
+
+(bot/defcommand listMemes [client message]
+  "Sends a list of the available memes"
+  (let [memeList (clojure.string/join "\n" (keys templates))]
+    (bot/say (str "**Available memes:**\n" memeList))))
 
 (defn -main [& args]
   (bot/start))
